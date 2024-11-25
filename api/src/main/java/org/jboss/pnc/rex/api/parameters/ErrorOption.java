@@ -17,6 +17,9 @@
  */
 package org.jboss.pnc.rex.api.parameters;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+
+@Schema(name = "ErrorOption", description = "The possible error options")
 public enum ErrorOption {
     /**
      * DEFAULT option

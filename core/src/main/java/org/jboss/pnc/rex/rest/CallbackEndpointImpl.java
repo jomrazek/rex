@@ -52,7 +52,7 @@ public class CallbackEndpointImpl implements CallbackEndpoint {
     @Retry
     @RolesAllowed({ "pnc-app-rex-editor", "pnc-app-rex-user", "pnc-users-admin" })
     @Deprecated
-    public void finish(String taskName, FinishRequest result, ErrorOption errorOption) {
+    public void finish(String taskName, FinishRequest result, String errorOption) {
         taskProvider.acceptRemoteResponse(taskName, result.getStatus(), result.getResponse());
     }
 
@@ -60,7 +60,7 @@ public class CallbackEndpointImpl implements CallbackEndpoint {
     @Retry
     @Fallback(fallbackMethod = "objectFallback", applyOn = {RollbackException.class, ArcUndeclaredThrowableException.class, TaskMissingException.class})
     @RolesAllowed({ "pnc-app-rex-editor", "pnc-app-rex-user", "pnc-users-admin" })
-    public void succeed(String taskName, Object result, ErrorOption errorOption) {
+    public void succeed(String taskName, Object result, String errorOption) {
         taskProvider.acceptRemoteResponse(taskName, true, result);
     }
 
@@ -68,31 +68,32 @@ public class CallbackEndpointImpl implements CallbackEndpoint {
     @Fallback(fallbackMethod = "objectFallback", applyOn = {RollbackException.class, ArcUndeclaredThrowableException.class, TaskMissingException.class})
     @Retry
     @RolesAllowed({ "pnc-app-rex-editor", "pnc-app-rex-user", "pnc-users-admin" })
-    public void fail(String taskName, Object result, ErrorOption errorOption) {
+    public void fail(String taskName, Object result, String errorOption) {
         taskProvider.acceptRemoteResponse(taskName, false, result);
     }
 
     /**
      * Return positive Status Code on ErrorOption.IGNORE if task is missing.
      */
-    void fallback(String taskName, FinishRequest result, ErrorOption errorOption, TaskMissingException e) {
+    void fallback(String taskName, FinishRequest result, String errorOption, TaskMissingException e) {
         handleWithErrorOption(errorOption, e);
     }
 
-    void objectFallback(String taskName, Object result, ErrorOption errorOption, TaskMissingException e) {
+    void objectFallback(String taskName, Object result, String errorOption, TaskMissingException e) {
         handleWithErrorOption(errorOption, e);
     }
 
-    void fallback(String taskName, FinishRequest result, ErrorOption errorOption) {
+    void fallback(String taskName, FinishRequest result, String errorOption) {
         systemFailure(taskName);
     }
 
-    void objectFallback(String taskName, Object result, ErrorOption errorOption) {
+    void objectFallback(String taskName, Object result, String errorOption) {
         systemFailure(taskName);
     }
 
-    private void handleWithErrorOption(ErrorOption errorOption, RuntimeException e) {
-        switch (errorOption) {
+    private void handleWithErrorOption(String errorOption, RuntimeException e) {
+        ErrorOption err = ErrorOption.valueOf(errorOption);
+        switch (err) {
             case IGNORE -> {}
             case PASS_ERROR -> throw e;
         }
